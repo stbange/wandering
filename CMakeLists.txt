@@ -59,8 +59,8 @@ if(WC_BUILD_GAME)
     set_target_properties(wandering PROPERTIES SUFFIX .html)
     target_link_options(wandering PRIVATE -sUSE_WEBGL2=1 -sMIN_WEBGL_VERSION=2 -sMAX_WEBGL_VERSION=2
       -sALLOW_MEMORY_GROWTH=1 -sFORCE_FILESYSTEM=1 -lidbfs.js
-      "--preload-file" "${CMAKE_SOURCE_DIR}/content@/content"
-      "--preload-file" "${CMAKE_SOURCE_DIR}/assets@/assets"
+      "SHELL:--preload-file \"${CMAKE_SOURCE_DIR}/content@/content\""
+      "SHELL:--preload-file \"${CMAKE_SOURCE_DIR}/assets@/assets\""
       "--shell-file" "${CMAKE_SOURCE_DIR}/web/shell.html")
   else()
     find_package(OpenGL REQUIRED)
