@@ -1,5 +1,11 @@
 # Build and run
 
+## Download and play
+
+[Windows build](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14034036959): extract the ZIP and launch
+wandering.exe. Keep SDL3.dll, assets/ and content/ beside it. Use the work branch
+for source. Other build artifacts and exact verification are linked in verification.md.
+
 ## Windows: portable toolchain used for verification
 
 From a PowerShell prompt in this repository:
@@ -16,7 +22,8 @@ The bootstrap downloads pinned portable tools into `.deps/`, verifies SHA256
 and extracts them. It does not change system installations or global PATH.
 The game is `build/wandering.exe`; packages are in `dist/`. Keep `SDL3.dll`,
 `assets/` and `content/` beside the executable. Launch from any working directory.
-Edit `content/home.lua` before launching to change tuning and furnishings.
+Edit `content/home.lua` before launching to change tuning, furnishings, recipes
+and crop durations; `content/rules.lua` controls home activity dispatch. See modding.md.
 
 ## Generic CMake (Windows, Linux, macOS)
 
@@ -49,7 +56,7 @@ Coverage requires GCC/gcov. The gate is >=95% authored authoritative C **line**
 coverage. Branch coverage is reported too. SDL/OpenGL adapter coverage is not
 included; the separate executable game test exercises actual events/rendering.
 
-## Emscripten build path (not yet verified)
+## Emscripten build path (CI compilation verified; runtime pending)
 
 Activate an Emscripten SDK, then:
 

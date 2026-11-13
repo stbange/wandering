@@ -8,7 +8,7 @@
 - [x] 5. Exercise valid edits, bad commands and endless scripts on Windows.
 - [x] 6. Run core and rendered game tests before the workspace disconnected.
 - [x] 7. Run an earlier packaged revision outside its source directory.
-- [ ] 8. Reverify reconstructed final sources in CI.
+- [x] 8. Reverify reconstructed final sources in CI (all six jobs passed).
 - [ ] 9. Inspect final script-driven menu screenshots and all platform runtimes.
 
 ## Acceptance

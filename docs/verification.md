@@ -1,5 +1,40 @@
 # Evidence register
 
+## Current verification — 2026-11-13
+
+Code revision: `ff433dc2f0c121b225b9680c2f03d287616007c5`.
+[GitHub Actions run](https://github.com/stbange/wandering/actions/runs/43420433941) completed successfully on attempt 2.
+
+| Check | Result | Scope |
+|---|---|---|
+| OpenSpec strict validation | Pass | Both change specifications |
+| Core unit tests and coverage | Pass | 410/411 lines, **99.76%**; 601/754 branches, **79.71%** |
+| Windows CI | Pass | Release build, unit tests, packaged executable/content |
+| Linux CI | Pass | Release build, unit tests and real SDL/OpenGL gameplay test under Xvfb |
+| macOS CI | Pass | Release build and unit tests; interactive runtime unverified |
+| Emscripten CI | Pass | HTML/JS/WASM/data package; browser/mobile/XR runtime unverified |
+
+Coverage includes authored core.c, save.c and content.c, excluding SDL/GL
+adapters and dependencies. The executable integration test covers real events,
+collision routes and rendering separately. No automated result grants acceptance.
+
+The first web attempt found CMake deduplicating repeated preload flags. Grouping
+each flag with its asset directory fixed it. Two later native jobs hit transient
+TLS connection resets while fetching Lua; retrying the failed jobs passed without
+disabling certificate checks or changing source.
+
+Downloadable build artifacts:
+- [Windows](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14034036959)
+- [Linux](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14034605538)
+- [macOS](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033339391)
+- [Web build, runtime unverified](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033976463)
+- [Machine-readable core coverage](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033013656)
+
+The local Windows foundation and an earlier relocated package were also tested
+before that host disconnected. Interior/exterior screenshots from the local run
+were inspected. The final scripted workshop screenshot and browser/headset
+playtesting remain pending. See feature-status.md for the full boundary.
+
 ## Native foundation evidence — 2026-11-13
 
 Environment: Windows x64, w64devkit GCC16.2, CMake4.5.0, SDL3.4.20,
@@ -68,8 +103,8 @@ from a different working directory. That package is on the disconnected Windows
 host and cannot currently be attached from this environment.
 
 The source of this follow-up was reconstructed from the session edits after the
-execution host became unavailable. Cross-platform CI now rechecks that exact
-reconstructed source. CI configuration alone is not a passing result.
+execution host became unavailable. Cross-platform CI has now rechecked that reconstructed source and passed;
+see the current verification table above.
 The original tested foundation is commit 3221b410b2f908c22cac39edad2027f81a42dae7.
 
 Human acceptance remains pending. Browser saving, mobile usability and WebXR are
