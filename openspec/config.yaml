@@ -1,0 +1,12 @@
+schema: spec-driven
+context: |
+  Single-player first-person game. C17, SDL3, OpenGL 3.3 / GLES3, Lua 5.4.
+  Native desktop, Emscripten WebGL2 with touch controls, and future WebXR adapter.
+  Authoritative simulation separate from rendering, input and persistence.
+  External assets and scripts; MIT code, CC BY 4.0 original art.
+  Full product contract: docs/requirements.md. Human acceptance is separate.
+rules:
+  specs:
+    - Use observable requirements and failure scenarios.
+  tasks:
+    - Separate implementation, automated verification and human acceptance.

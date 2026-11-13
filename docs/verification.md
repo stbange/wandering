@@ -1,0 +1,112 @@
+# Evidence register
+
+## Current verification — 2026-11-13
+
+Code revision: `ff433dc2f0c121b225b9680c2f03d287616007c5`.
+[GitHub Actions run](https://github.com/stbange/wandering/actions/runs/43420433941) completed successfully on attempt 2.
+
+| Check | Result | Scope |
+|---|---|---|
+| OpenSpec strict validation | Pass | Both change specifications |
+| Core unit tests and coverage | Pass | 410/411 lines, **99.76%**; 601/754 branches, **79.71%** |
+| Windows CI | Pass | Release build, unit tests, packaged executable/content |
+| Linux CI | Pass | Release build, unit tests and real SDL/OpenGL gameplay test under Xvfb |
+| macOS CI | Pass | Release build and unit tests; interactive runtime unverified |
+| Emscripten CI | Pass | HTML/JS/WASM/data package; browser/mobile/XR runtime unverified |
+
+Coverage includes authored core.c, save.c and content.c, excluding SDL/GL
+adapters and dependencies. The executable integration test covers real events,
+collision routes and rendering separately. No automated result grants acceptance.
+
+The first web attempt found CMake deduplicating repeated preload flags. Grouping
+each flag with its asset directory fixed it. Two later native jobs hit transient
+TLS connection resets while fetching Lua; retrying the failed jobs passed without
+disabling certificate checks or changing source.
+
+Downloadable build artifacts:
+- [Windows](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14034036959)
+- [Linux](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14034605538)
+- [macOS](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033339391)
+- [Web build, runtime unverified](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033976463)
+- [Machine-readable core coverage](https://github.com/stbange/wandering/actions/runs/43420433941/artifacts/14033013656)
+
+The local Windows foundation and an earlier relocated package were also tested
+before that host disconnected. Interior/exterior screenshots from the local run
+were inspected. The final scripted workshop screenshot and browser/headset
+playtesting remain pending. See feature-status.md for the full boundary.
+
+## Native foundation evidence — 2026-11-13
+
+Environment: Windows x64, w64devkit GCC16.2, CMake4.5.0, SDL3.4.20,
+Lua5.4.8, real OpenGL3.3 context. All commands ran against this source tree.
+
+- `openspec validate --all --strict --no-interactive`: foundation change passed.
+- `ctest --test-dir build --output-on-failure`: core and executable game tests passed.
+- Coverage build + `python tools/coverage.py build-core --gcov .deps/w64devkit/bin/gcov.exe`:
+  **347/348 authored core lines (99.71%)**, **513/636 branches (80.66%)**.
+  Denominator is `core.c`, `save.c`, `content.c`; excludes SDL/GL adapters and dependencies.
+- Actual `SDL_PushEvent` path: walk cabin/ramp, aimed helm, W/D/Shift turbo,
+  attached stability, jump while piloting, arrow look, release braking, cleared
+  held keys, pause, focus loss/recovery, F5/F9, help preference and controls after
+  restore. Straight entrance walked out and back without jump.
+- Core tests include one minute of carried turning at turbo; 20/35/45-degree
+  analytic slope traversal in both directions; pause/growth; full-inventory
+  transactional failures; repeat harvest/gather rejection; same-seed terrain
+  seam queries and corruption of every byte in a serialized save.
+- `build/game-home.bmp` and `build/game-exterior.bmp`: inspected actual rendered
+  interior/exterior. Furniture, window views, helm, six legs, roof and stairs visible.
+- Initial game-test failure: route ended on the command ramp, then aiming from
+  deck height missed above the helm. Test now walks onto the deck and explicitly
+  looks down at the helm. Assertions retained; final run passes.
+
+**Human playtest acceptance: pending.** No comfort, macOS, Linux, browser,
+mobile, XR or full-game acceptance is inferred from these tests.
+
+## Remaining gaps
+
+The deliverable is a foundation with an early home loop, not milestones A–G
+complete. In particular: no room construction/replacement, cabinets, persistent
+streaming/chunk storage, three biomes, solid outdoor obstacle collision, combat,
+traders, recovery caches, knowledge/techniques, cooking, compost/hoe gating,
+foundry, keep/mine/hamlet destinations, audio, cutout sprites, full night lighting,
+dynamic shadowing, turning stair routes or WebXR. Terrain renders in a bounded
+grid around the camera and uses double logical coordinates; it is not the required
+integer-chunk streamed world. Only straight stairs are supported. Recipe quantities and crop tuning now load from Lua; home action dispatch uses
+content/rules.lua and retains C validation.
+Web build configuration/touch adapter exist but are unverified; durable browser
+saving is incomplete. Native saves cover implemented state only, with format1.
+
+Progress against every full requirement is preserved in `requirements.md`;
+unchecked entries are not silently dropped.
+
+## Focused first playable acceptance checklist
+
+- [ ] Walk the furnished starter, collide with walls and furnishings, jump.
+- [ ] Aim at helm and press E. Steer/turn/reverse/turbo; release to stop.
+- [ ] Check free look at varied headings/pitches with both mouse and arrows.
+- [ ] Observe stable indoor motion and jumps during extended platform travel.
+- [ ] Pause/resume, switch focus, hide help, save/restore and regain controls.
+- [ ] Inspect low window views, lighting, physical helm and human scale.
+- [ ] Review measured automated evidence separately from these comfort judgments.
+
+## Scripted-home follow-up and environment interruption
+
+Before disconnection on 2026-11-13, the scripted-home core and SDL game tests
+passed on Windows. Core coverage at that checkpoint was **404/405 lines (99.75%)**
+and **585/738 branches (79.27%)**, with the same three-file denominator.
+A later furniture-support fix and expanded real planter/workshop event tests
+also passed the core and executable tests; coverage was not rerun afterward.
+
+The earlier package, including external rules and licenses, was extracted into
+a fresh temporary directory and passed its real input/render test while launched
+from a different working directory. That package is on the disconnected Windows
+host and cannot currently be attached from this environment.
+
+The source of this follow-up was reconstructed from the session edits after the
+execution host became unavailable. Cross-platform CI has now rechecked that reconstructed source and passed;
+see the current verification table above.
+The original tested foundation is commit 3221b410b2f908c22cac39edad2027f81a42dae7.
+
+Human acceptance remains pending. Browser saving, mobile usability and WebXR are
+not released. The ground-level bell still needs an interaction path. A partial
+local bell edit was excluded from reconstruction because it had not compiled.

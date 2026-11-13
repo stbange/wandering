@@ -1,0 +1,67 @@
+name: Native and web verification
+on: [push, pull_request, workflow_dispatch]
+permissions:
+  contents: read
+jobs:
+  specs:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: actions/setup-node@v7.1.0
+        with:
+          node-version: 24
+      - run: npm ci
+      - run: npm run spec:validate
+        env:
+          OPENSPEC_TELEMETRY: '0'
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - run: cmake -S . -B build-core -DWC_BUILD_GAME=OFF -DWC_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build-core --parallel 4
+      - run: ctest --test-dir build-core --output-on-failure
+      - run: python3 tools/coverage.py build-core
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: core-coverage
+          path: artifacts/coverage/
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [windows-latest, ubuntu-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libgl1-mesa-dev libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libxtst-dev libwayland-dev libxkbcommon-dev xvfb
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release --parallel 4
+      - run: ctest --test-dir build -C Release -R core --output-on-failure
+      - if: runner.os == 'Linux'
+        run: xvfb-run -a ctest --test-dir build -C Release -R game --output-on-failure
+        env:
+          LIBGL_ALWAYS_SOFTWARE: '1'
+      - run: cmake --install build --config Release --prefix dist/wandering
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wandering-${{ runner.os }}
+          path: dist/wandering/
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7.0.1
+      - uses: emscripten-core/setup-emsdk@v16
+        with:
+          version: 5.0.1
+      - run: emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build-web --parallel 4
+      - uses: actions/upload-artifact@v7.0.2
+        with:
+          name: wandering-web-unverified-runtime
+          path: |
+            build-web/wandering.html
+            build-web/wandering.js
+            build-web/wandering.wasm
+            build-web/wandering.data

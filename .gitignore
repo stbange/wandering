@@ -1,0 +1,13 @@
+/.deps/
+/build*/
+/dist/
+/artifacts/
+/node_modules/
+*.gcda
+*.gcno
+*.gcov
+*.gcov.json.gz
+*.profraw
+*.sav
+*.sav.prev
+*.sav.tmp
