@@ -5,6 +5,7 @@
 #include <math.h>
 #include <stdio.h>
 #include <string.h>
+#include <stdlib.h>
 
 static bool number(lua_State *l,const char *key,double *out,double min,double max) {
     lua_getfield(l,-1,key);bool ok=lua_isnumber(l,-1);double n=lua_tonumber(l,-1);lua_pop(l,1);
@@ -18,6 +19,40 @@ static bool vector(lua_State *l,const char *key,WCVec *out) {
     lua_pop(l,1);return ok;
 }
 static void instruction_limit(lua_State *l,lua_Debug *ar) { (void)ar;luaL_error(l,"Content exceeded its instruction budget"); }
+
+static bool quantities(lua_State *l,const char *key,int out[WC_ITEMS]) {
+    lua_getfield(l,-1,key);if(!lua_istable(l,-1)){lua_pop(l,1);return false;}
+    bool ok=lua_rawlen(l,-1)==WC_ITEMS;
+    for(int i=0;i<WC_ITEMS;i++){
+        lua_rawgeti(l,-1,i+1);double n=lua_tonumber(l,-1);
+        if(!lua_isinteger(l,-1)||n<0||n>1000)ok=false;else out[i]=(int)n;
+        lua_pop(l,1);
+    }
+    lua_pop(l,1);return ok;
+}
+static bool definitions(lua_State *l,WCConfig *c) {
+    lua_getfield(l,-1,"recipes");
+    if(!lua_istable(l,-1)||lua_rawlen(l,-1)<1||lua_rawlen(l,-1)>WC_MAX_RECIPES){lua_pop(l,1);return false;}
+    bool ok=true;c->recipe_count=(int)lua_rawlen(l,-1);
+    for(int i=0;ok&&i<c->recipe_count;i++) {
+        lua_rawgeti(l,-1,i+1);if(!lua_istable(l,-1)){lua_pop(l,1);ok=false;break;}
+        WCRecipe *r=&c->recipes[i];double id;
+        ok=number(l,"id",&id,1,10000)&&id==(int)id&&quantities(l,"cost",r->cost)&&quantities(l,"reward",r->reward);
+        if(ok){r->id=(int)id;for(int j=0;j<i;j++)if(c->recipes[j].id==r->id)ok=false;}
+        lua_getfield(l,-1,"name");const char *name=lua_tostring(l,-1);
+        if(!name||strlen(name)>39)ok=false;else snprintf(r->name,sizeof(r->name),"%s",name);
+        lua_pop(l,1);lua_getfield(l,-1,"satchel");r->satchel=lua_toboolean(l,-1)!=0;lua_pop(l,2);
+    }
+    lua_pop(l,1);lua_getfield(l,-1,"crops");
+    if(!lua_istable(l,-1)||lua_rawlen(l,-1)!=2){lua_pop(l,1);return false;}
+    for(int i=0;ok&&i<2;i++) {
+        lua_rawgeti(l,-1,i+1);double yield;
+        if(!lua_istable(l,-1)||!number(l,"duration",&c->crop_duration[i],1,60)||!number(l,"yield",&yield,1,20)||yield!=(int)yield)ok=false;
+        else c->crop_yield[i]=(int)yield;
+        lua_pop(l,1);
+    }
+    lua_pop(l,1);return ok;
+}
 bool wc_load_content(WCConfig *c,const char *path,char *error,size_t size) {
     lua_State *l=luaL_newstate();if(!l) { snprintf(error,size,"Cannot allocate Lua state");return false; }
     /* Content tables only: no os/io/package/debug or arbitrary filesystem access. */
@@ -53,6 +88,43 @@ bool wc_load_content(WCConfig *c,const char *path,char *error,size_t size) {
             lua_pop(l,1);
         }
     }
-    if(ok) *c=candidate;else snprintf(error,size,"Invalid content table: check tuning, object bounds and unique IDs");
+    if(ok) {lua_pop(l,1);ok=definitions(l,&candidate);}
+    if(ok) *c=candidate;else snprintf(error,size,"Invalid content table: check tuning, objects, unique IDs, recipes and crops");
     lua_close(l);return ok;
+}
+
+struct WCRules { lua_State *lua; };
+WCRules *wc_rules_open(const char *path,char *error,size_t size) {
+    WCRules *r=calloc(1,sizeof(*r));if(!r)return NULL;
+    r->lua=luaL_newstate();if(!r->lua){free(r);return NULL;}
+    lua_State *l=r->lua;lua_sethook(l,instruction_limit,LUA_MASKCOUNT,100000);
+    if(luaL_loadfile(l,path)!=LUA_OK || lua_pcall(l,0,1,0)!=LUA_OK) {
+        snprintf(error,size,"Rules script: %s",lua_tostring(l,-1));wc_rules_close(r);return NULL;
+    }
+    if(!lua_istable(l,-1)){snprintf(error,size,"Rules must return a table");wc_rules_close(r);return NULL;}
+    lua_getfield(l,-1,"on_action");bool valid=lua_isfunction(l,-1);lua_pop(l,1);
+    if(!valid){snprintf(error,size,"Rules must define on_action");wc_rules_close(r);return NULL;}
+    return r;
+}
+void wc_rules_close(WCRules *r) {if(r){lua_close(r->lua);free(r);}}
+WCResult wc_rules_action(WCRules *r,WCState *s,const WCConfig *cfg,int panel,int index,int slot,bool *save) {
+    *save=false;if(!r)return WC_UNAVAILABLE;
+    lua_State *l=r->lua;lua_getfield(l,1,"on_action");
+    lua_pushinteger(l,panel);lua_pushinteger(l,index);lua_pushinteger(l,slot);
+    if(lua_pcall(l,3,1,0)!=LUA_OK){lua_settop(l,1);return WC_INVALID;}
+    if(!lua_istable(l,-1)){lua_pop(l,1);return WC_INVALID;}
+    lua_getfield(l,-1,"command");const char *cmd=lua_tostring(l,-1);
+    lua_getfield(l,-2,"id");bool has_id=lua_isinteger(l,-1);lua_Integer raw=lua_tointeger(l,-1);
+    int id=raw>=0&&raw<10000?(int)raw:-1;
+    WCResult result=WC_INVALID;
+    if(cmd && wc_inside(s)) {
+        if(strcmp(cmd,"craft")==0 && has_id)result=wc_craft(s,cfg,id);
+        else if(strcmp(cmd,"garden")==0 && has_id)result=wc_garden(s,cfg,slot,id);
+        else if(strcmp(cmd,"rest")==0)result=wc_rest(s);
+        else if(strcmp(cmd,"save")==0){*save=true;result=WC_OK;}
+        else if(strcmp(cmd,"select-item")==0){s->selection=(s->selection+1)%WC_ITEMS;result=WC_OK;}
+        else if(strcmp(cmd,"deposit")==0)result=wc_transfer(s,s->selection,1,true);
+        else if(strcmp(cmd,"withdraw")==0)result=wc_transfer(s,s->selection,1,false);
+    }
+    lua_settop(l,1);return result;
 }

@@ -1,6 +1,7 @@
 #ifndef WC_INPUT_H
 #define WC_INPUT_H
 #include "core.h"
+#include "content.h"
 #include <SDL3/SDL.h>
 typedef struct {
     bool held[SDL_SCANCODE_COUNT];
@@ -12,6 +13,7 @@ typedef struct {
     double touch_forward,touch_strafe;
     bool touch_active,touch_jump;
     unsigned events;
+    WCRules *rules;
 } WCControls;
 void wc_controls_clear(WCControls *in);
 void wc_event(WCControls *in,WCState *s,const WCConfig *cfg,const SDL_Event *event);

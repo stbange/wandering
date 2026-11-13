@@ -3,6 +3,13 @@
 return {
   tuning = { speed=5, turbo=5, turn=0.38, walk=3.3, sprint=5.5,
              jump=5.5, gravity=15, eye=1.62 },
+  -- Item order: timber, stone, fiber, sunroot seed, mint seed, plank, twine, sunroot, mint.
+  recipes = {
+    { id=1, name="2 Planks", cost={2,0,0,0,0,0,0,0,0}, reward={0,0,0,0,0,2,0,0,0} },
+    { id=2, name="2 Twine", cost={0,0,3,0,0,0,0,0,0}, reward={0,0,0,0,0,0,2,0,0} },
+    { id=3, name="Field satchel", cost={0,0,0,0,0,2,2,0,0}, reward={0,0,0,0,0,0,0,0,0}, satchel=true }
+  },
+  crops = { {duration=45, yield=3}, {duration=60, yield=3} },
   objects = {
     { id=1, kind=1, slot=0, min={-0.7,0.6,-6.3}, max={0.7,2.0,-5.6}, color={0.56,0.33,0.15}, solid=true },
     { id=2, kind=7, slot=0, min={2.6,0.6,-6.5}, max={4.6,1.5,-5.1}, color={0.26,0.44,0.39}, solid=true },

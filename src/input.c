@@ -20,7 +20,6 @@ static void interact(WCState *s,const WCConfig *cfg) {
     result(s,site>=0?wc_gather(s,site):WC_TOO_FAR);
 }
 void wc_menu_action(WCControls *in,WCState *s,const WCConfig *cfg,int action) {
-    (void)cfg;
     if(s->panel==0) {
         if(action==0) wc_pause(s,false);
         else if(action==1) in->save=true;
@@ -31,14 +30,13 @@ void wc_menu_action(WCControls *in,WCState *s,const WCConfig *cfg,int action) {
     } else if(s->panel==10) {
         if(action==0) in->new_journey=true;
         else if(action==1) s->panel=0;
-    } else if(s->panel==WC_BED) {
-        if(action==0) result(s,wc_rest(s));else if(action==1) in->save=true;
-    } else if(s->panel==WC_WORKSHOP) result(s,wc_craft(s,action));
-    else if(s->panel==WC_PLANTER) result(s,wc_garden(s,s->selection,action));
-    else if(s->panel==WC_PANTRY) {
-        if(action==0) s->selection=(s->selection+1)%WC_ITEMS;
-        else if(action==1) result(s,wc_transfer(s,s->selection,1,true));
-        else if(action==2) result(s,wc_transfer(s,s->selection,1,false));
+    } else {
+        if(s->panel==WC_WORKSHOP && action==5 && cfg->recipe_count>5) {
+            s->selection=(s->selection+1)%((cfg->recipe_count+4)/5);wc_controls_clear(in);return;
+        }
+        if(s->panel==WC_WORKSHOP)action+=s->selection*5;
+        bool save=false;result(s,wc_rules_action(in->rules,s,cfg,s->panel,action,s->selection,&save));
+        if(save)in->save=true;
     }
     wc_controls_clear(in);
 }

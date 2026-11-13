@@ -308,7 +308,9 @@ static void hud(const WCState *s,const WCConfig *cfg,const WCControls *controls)
     else if(target>=0){const char *names[]={"","HELM","BED","PANTRY","WORKSHOP","PLANTER","GATE LEVER","CHART TABLE"};snprintf(line,sizeof(line),"E  %s",names[cfg->objects[target].kind]);}
     else snprintf(line,sizeof(line),"%s",s->attached?"AT HOME":"E  GATHER NEARBY SUPPLIES");
     text(338,396,line,1.4,cream);
-    rect(275,467,410,54,panel);text(287,479,s->message,1,cream);
+    char wrapped[WC_MESSAGE+8];size_t src=0,dst=0;
+    while(s->message[src] && dst<sizeof(wrapped)-2) {if(src>0 && src%64==0)wrapped[dst++]='\n';wrapped[dst++]=s->message[src++];}wrapped[dst]=0;
+    rect(275,467,410,54,panel);text(287,479,wrapped,1,cream);
     if(s->help && s->context!=WC_MENU) {
         rect(18,89,239,151,panel);text(31,102,"MAKE YOURSELF AT HOME",1.3,gold);
         text(31,124,"WASD  WALK / STEER\nMOUSE OR ARROWS  LOOK\nE  INTERACT / RELEASE HELM\nSPACE  JUMP  SHIFT  SPRINT\nI  BACKPACK  ESC  PAUSE\nF5  SAVE  F9  RESTORE\nCLOSE GATE BEFORE STEERING",1.1,cream);
@@ -324,10 +326,19 @@ static void hud(const WCState *s,const WCConfig *cfg,const WCControls *controls)
     } else if(s->panel==WC_BED){button(0,"1  REST: RECOVER + 120 EFFORT SECONDS",false);button(1,"2  SAVE JOURNEY",false);}
     else if(s->panel==10){button(0,"1  CONFIRM NEW SEED AND FRESH PROGRESS",false);button(1,"2  KEEP CURRENT JOURNEY",false);text(275,280,"EXISTING SAVE STAYS UNTIL YOU SAVE AGAIN.",1.1,cream);}
     else if(s->panel==WC_WORKSHOP) {
-        snprintf(line,sizeof(line),"1  2 PLANKS  /  TIMBER %d/2",wc_available(s,WC_TIMBER));button(0,line,false);
-        snprintf(line,sizeof(line),"2  2 TWINE   /  FIBER %d/3",wc_available(s,WC_FIBER));button(1,line,false);
-        snprintf(line,sizeof(line),"3  SATCHEL / PLANK %d/2 TWINE %d/2",wc_available(s,WC_PLANK),wc_available(s,WC_TWINE));button(2,line,false);
-        text(275,309,"PAYS BACKPACK FIRST, THEN PANTRY.\nOUTPUT GOES TO BACKPACK.\nSATCHEL PERMANENTLY ADDS 16 UNITS.",1.2,muted);
+        for(int row=0;row<5;row++) {
+            int index=s->selection*5+row;if(index>=cfg->recipe_count)break;
+            const WCRecipe *r=&cfg->recipes[index];button(row,"",false);
+            snprintf(line,sizeof(line),"%d  %s",row+1,r->name);text(280,176+row*40,line,1.3,cream);
+            char costs[256]="HOME: ";size_t used=strlen(costs);
+            for(int i=0;i<WC_ITEMS;i++)if(r->cost[i] && used<sizeof(costs)-1) {
+                int written=snprintf(costs+used,sizeof(costs)-used,"%s %d/%d  ",wc_item_name(i),wc_available(s,i),r->cost[i]);
+                if(written<0 || (size_t)written>=sizeof(costs)-used)break;used+=(size_t)written;
+            }
+            text(280,193+row*40,costs,.95,muted);
+        }
+        if(cfg->recipe_count>5)button(5,"6  NEXT RECIPE PAGE",false);
+        else text(275,389,"PAYS BACKPACK FIRST, THEN PANTRY.\nOUTPUT TO BACKPACK. SATCHEL: +16 CAPACITY.",1.1,muted);
     } else if(s->panel==WC_PLANTER) {
         WCCrop c=s->crops[s->selection];snprintf(line,sizeof(line),"1  PLANT SUNROOT / SEED %d/1",wc_available(s,WC_SEED));button(0,line,false);
         snprintf(line,sizeof(line),"2  PLANT MINT / SEED %d/1",wc_available(s,WC_MINT_SEED));button(1,line,false);button(2,"3  HARVEST INTO BACKPACK",false);

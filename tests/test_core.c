@@ -40,6 +40,9 @@ static void motion(void) {
     s=fresh();s.player.x=2;ticks(&s,(WCInput){.forward=1},360);CHECK(s.player.y>.5);
     s=fresh();ticks(&s,(WCInput){.strafe=.5,.forward=.5,.turbo=true},20);CHECK(s.player.x>0);
     s=fresh();s.vertical=100;s.grounded=false;ticks(&s,(WCInput){0},10);CHECK(s.player.y<=3.7);
+    s=fresh();s.player=(WCVec){-4.5,1.2,0};s.grounded=false;ticks(&s,(WCInput){0},120);
+    NEAR(s.player.y,.65,1e-9);CHECK(s.grounded);
+    ticks(&s,(WCInput){.strafe=1},120);CHECK(s.player.x> -3.6);NEAR(s.player.y,0,1e-9);
     s=fresh();s.context=WC_BUILD;WCState copy=s;ticks(&s,(WCInput){.forward=1},1);CHECK(s.player.z==copy.player.z);
     s=fresh();copy=s;wc_tick(&s,&cfg,(WCInput){0},0,flat,NULL);wc_tick(&s,&cfg,(WCInput){0},NAN,flat,NULL);wc_tick(&s,&cfg,(WCInput){0},1,flat,NULL);CHECK(memcmp(&s,&copy,sizeof(s))==0);
 }
@@ -94,36 +97,36 @@ static void boarding(void) {
 static void economy(void) {
     WCState s=fresh();s.pack.items[WC_TIMBER]=1;s.pantry.items[WC_TIMBER]=1;
     CHECK(wc_available(&s,WC_TIMBER)==2);CHECK(wc_available(&s,-1)==0);
-    CHECK(wc_craft(&s,0)==WC_OK);CHECK(s.pack.items[WC_PLANK]==2);CHECK(wc_available(&s,WC_TIMBER)==0);
-    s.pack.items[WC_FIBER]=3;CHECK(wc_craft(&s,1)==WC_OK);CHECK(s.pack.items[WC_TWINE]==2);
-    CHECK(wc_craft(&s,2)==WC_OK);CHECK(s.pack.capacity==40);CHECK(wc_craft(&s,2)==WC_UNAVAILABLE);
-    CHECK(wc_craft(&s,3)==WC_INVALID);
-    WCState before=s;CHECK(wc_craft(&s,0)==WC_SUPPLIES);CHECK(memcmp(&s,&before,sizeof(s))==0);
+    CHECK(wc_craft(&s,&cfg,0)==WC_OK);CHECK(s.pack.items[WC_PLANK]==2);CHECK(wc_available(&s,WC_TIMBER)==0);
+    s.pack.items[WC_FIBER]=3;CHECK(wc_craft(&s,&cfg,1)==WC_OK);CHECK(s.pack.items[WC_TWINE]==2);
+    CHECK(wc_craft(&s,&cfg,2)==WC_OK);CHECK(s.pack.capacity==40);CHECK(wc_craft(&s,&cfg,2)==WC_UNAVAILABLE);
+    CHECK(wc_craft(&s,&cfg,3)==WC_INVALID);
+    WCState before=s;CHECK(wc_craft(&s,&cfg,0)==WC_SUPPLIES);CHECK(memcmp(&s,&before,sizeof(s))==0);
     int cost[WC_ITEMS]={0},reward[WC_ITEMS]={0};cost[0]=-1;CHECK(wc_exchange(&s,cost,reward,false)==WC_INVALID);
     cost[0]=0;reward[0]=-1;CHECK(wc_exchange(&s,cost,reward,false)==WC_INVALID);reward[0]=10001;CHECK(wc_exchange(&s,cost,reward,false)==WC_INVALID);
     reward[0]=0;cost[0]=10001;CHECK(wc_exchange(&s,cost,reward,false)==WC_INVALID);
     s=fresh();s.pack.items[WC_STONE]=24;s.pantry.items[WC_TIMBER]=2;before=s;
-    CHECK(wc_craft(&s,0)==WC_CAPACITY);CHECK(memcmp(&s,&before,sizeof(s))==0);
-    s.pack.items[WC_STONE]=22;s.pack.items[WC_TIMBER]=2;CHECK(wc_craft(&s,0)==WC_OK);CHECK(wc_used(&s.pack)==24);
+    CHECK(wc_craft(&s,&cfg,0)==WC_CAPACITY);CHECK(memcmp(&s,&before,sizeof(s))==0);
+    s.pack.items[WC_STONE]=22;s.pack.items[WC_TIMBER]=2;CHECK(wc_craft(&s,&cfg,0)==WC_OK);CHECK(wc_used(&s.pack)==24);
     CHECK(wc_transfer(&s,WC_STONE,4,true)==WC_OK);CHECK(s.pantry.items[WC_STONE]==4);
     CHECK(wc_transfer(&s,WC_STONE,4,false)==WC_OK);CHECK(wc_transfer(&s,WC_SEED,1,false)==WC_CAPACITY);
     CHECK(wc_transfer(&s,-1,1,true)==WC_INVALID);CHECK(wc_transfer(&s,0,0,true)==WC_INVALID);
     CHECK(wc_transfer(&s,WC_TIMBER,1,true)==WC_SUPPLIES);
-    s.attached=false;CHECK(wc_craft(&s,0)==WC_UNAVAILABLE);CHECK(wc_transfer(&s,0,1,true)==WC_UNAVAILABLE);
+    s.attached=false;CHECK(wc_craft(&s,&cfg,0)==WC_UNAVAILABLE);CHECK(wc_transfer(&s,0,1,true)==WC_UNAVAILABLE);
     for(int i=0;i<WC_ITEMS;i++) CHECK(strlen(wc_item_name(i))>0);CHECK(strcmp(wc_item_name(99),"Unknown")==0);
     for(int i=0;i<=WC_TOO_FAR;i++) CHECK(strlen(wc_result_text((WCResult)i))>0);CHECK(strlen(wc_result_text((WCResult)100))>0);
 }
 static void garden_gather_vitals(void) {
-    WCState s=fresh();CHECK(wc_garden(&s,-1,0)==WC_INVALID);CHECK(wc_garden(&s,0,3)==WC_INVALID);
-    CHECK(wc_garden(&s,0,0)==WC_OK);CHECK(wc_garden(&s,0,1)==WC_BLOCKED);
-    CHECK(wc_garden(&s,1,1)==WC_OK);CHECK(wc_garden(&s,0,2)==WC_UNAVAILABLE);
+    WCState s=fresh();CHECK(wc_garden(&s,&cfg,-1,0)==WC_INVALID);CHECK(wc_garden(&s,&cfg,0,3)==WC_INVALID);
+    CHECK(wc_garden(&s,&cfg,0,0)==WC_OK);CHECK(wc_garden(&s,&cfg,0,1)==WC_BLOCKED);
+    CHECK(wc_garden(&s,&cfg,1,1)==WC_OK);CHECK(wc_garden(&s,&cfg,0,2)==WC_UNAVAILABLE);
     wc_pause(&s,true);ticks(&s,(WCInput){0},100);CHECK(s.clock==0);wc_pause(&s,false);
     s.clock=45;s.pack.items[WC_STONE]=24;WCState before=s;
-    CHECK(wc_garden(&s,0,2)==WC_CAPACITY);CHECK(memcmp(&s,&before,sizeof(s))==0);
-    s.pack.items[WC_STONE]=0;CHECK(wc_garden(&s,0,2)==WC_OK);CHECK(s.pack.items[WC_SUNROOT]==3);
-    CHECK(wc_garden(&s,0,2)==WC_UNAVAILABLE);s.clock=600;CHECK(wc_garden(&s,1,2)==WC_OK);
-    s.pantry.items[WC_SEED]=0;s.pack.items[WC_SEED]=0;CHECK(wc_garden(&s,0,0)==WC_SUPPLIES);
-    CHECK(wc_gather(&s,0)==WC_UNAVAILABLE);s.attached=false;CHECK(wc_garden(&s,0,0)==WC_UNAVAILABLE);
+    CHECK(wc_garden(&s,&cfg,0,2)==WC_CAPACITY);CHECK(memcmp(&s,&before,sizeof(s))==0);
+    s.pack.items[WC_STONE]=0;CHECK(wc_garden(&s,&cfg,0,2)==WC_OK);CHECK(s.pack.items[WC_SUNROOT]==3);
+    CHECK(wc_garden(&s,&cfg,0,2)==WC_UNAVAILABLE);s.clock=600;CHECK(wc_garden(&s,&cfg,1,2)==WC_OK);
+    s.pantry.items[WC_SEED]=0;s.pack.items[WC_SEED]=0;CHECK(wc_garden(&s,&cfg,0,0)==WC_SUPPLIES);
+    CHECK(wc_gather(&s,0)==WC_UNAVAILABLE);s.attached=false;CHECK(wc_garden(&s,&cfg,0,0)==WC_UNAVAILABLE);
     CHECK(wc_rest(&s)==WC_UNAVAILABLE);CHECK(wc_gather(&s,-1)==WC_INVALID);CHECK(wc_gather(&s,0)==WC_TOO_FAR);
     s.player=(WCVec){-10,0,23};CHECK(wc_gather(&s,0)==WC_OK);CHECK(wc_gather(&s,0)==WC_UNAVAILABLE);
     s.clock+=120;s.pack.items[WC_STONE]=20;before=s;CHECK(wc_gather(&s,0)==WC_CAPACITY);CHECK(memcmp(&s,&before,sizeof(s))==0);
@@ -172,11 +175,41 @@ static void bad_content(const char *source) {
     FILE *f=fopen("bad-content.lua","wb");fputs(source,f);fclose(f);
     WCConfig c=cfg,before=c;char error[256];CHECK(!wc_load_content(&c,"bad-content.lua",error,sizeof(error)));CHECK(memcmp(&c,&before,sizeof(c))==0);remove("bad-content.lua");
 }
+
+static WCRules *rules_source(const char *source) {
+    FILE *f=fopen("test-rules.lua","wb");fputs(source,f);fclose(f);char error[256];
+    WCRules *r=wc_rules_open("test-rules.lua",error,sizeof(error));remove("test-rules.lua");return r;
+}
+static void scripts(const char *content_path) {
+    char path[1024],error[256];snprintf(path,sizeof(path),"%s",content_path);
+    char *slash=strrchr(path,'/');if(!slash)slash=strrchr(path,'\\');CHECK(slash!=NULL);strcpy(slash+1,"rules.lua");
+    WCRules *r=wc_rules_open(path,error,sizeof(error));CHECK(r!=NULL);bool save;
+    WCState s=fresh();s.health=3;CHECK(wc_rules_action(r,&s,&cfg,WC_BED,0,0,&save)==WC_OK);CHECK(s.health==100);
+    CHECK(wc_rules_action(r,&s,&cfg,WC_BED,1,0,&save)==WC_OK && save);
+    CHECK(wc_rules_action(r,&s,&cfg,WC_PANTRY,0,0,&save)==WC_OK);CHECK(s.selection==1);
+    s.pack.items[WC_STONE]=2;CHECK(wc_rules_action(r,&s,&cfg,WC_PANTRY,1,0,&save)==WC_OK);
+    CHECK(wc_rules_action(r,&s,&cfg,WC_PANTRY,2,0,&save)==WC_OK);CHECK(s.pack.items[WC_STONE]==2);
+    s.pack.items[WC_TIMBER]=2;CHECK(wc_rules_action(r,&s,&cfg,WC_WORKSHOP,0,0,&save)==WC_OK);
+    CHECK(wc_rules_action(r,&s,&cfg,WC_PLANTER,0,0,&save)==WC_OK);
+    CHECK(wc_rules_action(r,&s,&cfg,99,0,0,&save)==WC_INVALID);
+    WCState before=s;s.attached=false;CHECK(wc_rules_action(r,&s,&cfg,WC_BED,0,0,&save)==WC_INVALID);s=before;
+    wc_rules_close(r);CHECK(wc_rules_action(NULL,&s,&cfg,0,0,0,&save)==WC_UNAVAILABLE);wc_rules_close(NULL);
+    CHECK(rules_source("return 2")==NULL);CHECK(rules_source("return {}")==NULL);CHECK(rules_source("syntax!")==NULL);
+    const char *bad[]={"return {on_action=function() while true do end end}","return {on_action=function() return 4 end}",
+        "return {on_action=function() return {command='craft'} end}","return {on_action=function() return {command='craft',id=-1} end}",
+        "return {on_action=function() return {command='unsupported'} end}"};
+    for(int i=0;i<5;i++) {r=rules_source(bad[i]);CHECK(r!=NULL);before=s;CHECK(wc_rules_action(r,&s,&cfg,0,0,0,&save)==WC_INVALID);CHECK(memcmp(&s,&before,sizeof(s))==0);wc_rules_close(r);}
+    /* A script edit changes behavior, while C still owns the transaction. */
+    r=rules_source("return {on_action=function(panel,index,slot) return {command='craft',id=1} end}");s=fresh();s.pack.items[WC_FIBER]=3;
+    CHECK(wc_rules_action(r,&s,&cfg,WC_WORKSHOP,0,0,&save)==WC_OK);CHECK(s.pack.items[WC_TWINE]==2);wc_rules_close(r);
+    WCConfig changed=cfg;changed.recipes[0].cost[WC_TIMBER]=1;changed.recipes[0].reward[WC_PLANK]=4;
+    s=fresh();s.pack.items[WC_TIMBER]=1;CHECK(wc_craft(&s,&changed,0)==WC_OK);CHECK(s.pack.items[WC_PLANK]==4);
+}
 int main(int argc,char **argv) {
     if(argc!=2) return 2;char error[256];wc_defaults(&cfg);
     CHECK(wc_load_content(&cfg,argv[1],error,sizeof(error)));CHECK(cfg.object_count==8);
     if(failures) { fprintf(stderr,"Content error: %s\n",error);return 1; }
-    motion();input_contexts();interaction();boarding();economy();garden_gather_vitals();persistence();validation();
+    motion();input_contexts();interaction();boarding();economy();garden_gather_vitals();persistence();validation();scripts(argv[1]);
     bad_content("return 3");bad_content("return {tuning={}}");bad_content("while true do end");bad_content("!syntax");
     bad_content("return {tuning={speed=5,turbo=5,turn=.38,walk=3,sprint=5,jump=5,gravity=15,eye=1.62},objects={5}}");
     bad_content("return {tuning={speed=5,turbo=5,turn=.38,walk=3,sprint=5,jump=5,gravity=15,eye=1.62},objects={{id=1,kind=0,slot=0,min={0,0,0},max={1,1,1},color={2,0,0}}}}");

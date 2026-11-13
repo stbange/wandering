@@ -10,6 +10,7 @@
 #define WC_MAX_OBJECTS 64
 #define WC_ITEMS 9
 #define WC_MESSAGE 160
+#define WC_MAX_RECIPES 16
 typedef enum { WC_TIMBER, WC_STONE, WC_FIBER, WC_SEED, WC_MINT_SEED,
                WC_PLANK, WC_TWINE, WC_SUNROOT, WC_MINT } WCItem;
 typedef enum { WC_FOOT, WC_HELM, WC_BUILD, WC_MENU } WCContext;
@@ -18,6 +19,11 @@ typedef enum { WC_NONE, WC_HELM_OBJECT, WC_BED, WC_PANTRY, WC_WORKSHOP,
 typedef enum { WC_OK, WC_INVALID, WC_CAPACITY, WC_SUPPLIES, WC_UNAVAILABLE,
                WC_BLOCKED, WC_TOO_FAR } WCResult;
 typedef struct { double x,y,z; } WCVec;
+typedef struct {
+    int id,cost[WC_ITEMS],reward[WC_ITEMS];
+    char name[40];
+    bool satchel;
+} WCRecipe;
 typedef struct {
     int id, kind, slot;
     WCVec min,max;
@@ -28,6 +34,10 @@ typedef struct {
     double speed,turbo,turn,walk,sprint,jump,gravity,eye;
     WCObject objects[WC_MAX_OBJECTS];
     int object_count;
+    WCRecipe recipes[WC_MAX_RECIPES];
+    int recipe_count;
+    double crop_duration[2];
+    int crop_yield[2];
 } WCConfig;
 typedef struct { int items[WC_ITEMS], capacity; } WCInventory;
 typedef struct { int crop; double planted,duration; bool treated; } WCCrop;
@@ -69,9 +79,9 @@ WCResult wc_rest(WCState *s);
 int wc_used(const WCInventory *i);
 int wc_available(const WCState *s,int item);
 WCResult wc_exchange(WCState *s,const int cost[WC_ITEMS],const int reward[WC_ITEMS],bool shared);
-WCResult wc_craft(WCState *s,int recipe);
+WCResult wc_craft(WCState *s,const WCConfig *cfg,int recipe);
 WCResult wc_transfer(WCState *s,int item,int count,bool deposit);
-WCResult wc_garden(WCState *s,int slot,int action);
+WCResult wc_garden(WCState *s,const WCConfig *cfg,int slot,int action);
 WCResult wc_gather(WCState *s,int site);
 const char *wc_item_name(int item);
 const char *wc_result_text(WCResult result);

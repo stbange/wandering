@@ -112,7 +112,14 @@ void wc_tick(WCState *s,const WCConfig *c,WCInput in,double dt,WCSurface ground,
         WCVec a=p; a.x+=dx; if(!collision(s,c,a)) p.x=a.x;
         a=p; a.z+=dz; if(!collision(s,c,a)) p.z=a.z;
         double level=support(s,p);
-        if(s->grounded && !in.jump) p.y=level;
+        for(int i=0;i<c->object_count;i++) {
+            WCObject o=c->objects[i];
+            if(o.solid && p.x>o.min.x && p.x<o.max.x && p.z>o.min.z && p.z<o.max.z && p.y>=o.max.y-.05)
+                level=fmax(level,o.max.y);
+        }
+        if(s->grounded && !in.jump) {
+            if(p.y-level>.25)s->grounded=false;else p.y=level;
+        }
         if(in.jump && s->grounded) { s->vertical=c->jump; s->grounded=false; }
         s->vertical-=c->gravity*dt; p.y+=s->vertical*dt;
         if(p.y<=level) { p.y=level; s->vertical=0; s->grounded=true; }
@@ -210,15 +217,13 @@ WCResult wc_exchange(WCState *s,const int cost[WC_ITEMS],const int reward[WC_ITE
     if(wc_used(&p)>p.capacity) return WC_CAPACITY;
     s->pack=p;s->pantry=h;return WC_OK;
 }
-WCResult wc_craft(WCState *s,int recipe) {
+WCResult wc_craft(WCState *s,const WCConfig *cfg,int recipe) {
     if(!wc_inside(s)) return WC_UNAVAILABLE;
-    int cost[WC_ITEMS]={0},reward[WC_ITEMS]={0};
-    if(recipe==0) { cost[WC_TIMBER]=2;reward[WC_PLANK]=2; }
-    else if(recipe==1) { cost[WC_FIBER]=3;reward[WC_TWINE]=2; }
-    else if(recipe==2) { if(s->satchel) return WC_UNAVAILABLE; cost[WC_PLANK]=2;cost[WC_TWINE]=2; }
-    else return WC_INVALID;
-    WCResult r=wc_exchange(s,cost,reward,true);
-    if(r==WC_OK && recipe==2) { s->satchel=true;s->pack.capacity+=16; }
+    if(recipe<0 || recipe>=cfg->recipe_count) return WC_INVALID;
+    const WCRecipe *definition=&cfg->recipes[recipe];
+    if(definition->satchel && s->satchel) return WC_UNAVAILABLE;
+    WCResult r=wc_exchange(s,definition->cost,definition->reward,true);
+    if(r==WC_OK && definition->satchel) { s->satchel=true;s->pack.capacity+=16; }
     return r;
 }
 WCResult wc_transfer(WCState *s,int item,int count,bool deposit) {
@@ -229,7 +234,7 @@ WCResult wc_transfer(WCState *s,int item,int count,bool deposit) {
     if(wc_used(to)+count>to->capacity) return WC_CAPACITY;
     from->items[item]-=count;to->items[item]+=count;return WC_OK;
 }
-WCResult wc_garden(WCState *s,int slot,int action) {
+WCResult wc_garden(WCState *s,const WCConfig *cfg,int slot,int action) {
     if(!wc_inside(s)) return WC_UNAVAILABLE;
     if(slot<0 || slot>1 || action<0 || action>2) return WC_INVALID;
     WCCrop *crop=&s->crops[slot];int cost[WC_ITEMS]={0},reward[WC_ITEMS]={0};
@@ -237,10 +242,10 @@ WCResult wc_garden(WCState *s,int slot,int action) {
         if(crop->crop!=-1) return WC_BLOCKED;
         cost[action==0?WC_SEED:WC_MINT_SEED]=1;
         WCResult r=wc_exchange(s,cost,reward,true);if(r!=WC_OK) return r;
-        crop->crop=action;crop->planted=s->clock;crop->duration=action==0?45:60;return WC_OK;
+        crop->crop=action;crop->planted=s->clock;crop->duration=cfg->crop_duration[action];return WC_OK;
     }
     if(crop->crop<0 || s->clock-crop->planted<crop->duration) return WC_UNAVAILABLE;
-    reward[crop->crop==0?WC_SUNROOT:WC_MINT]=3;reward[crop->crop==0?WC_SEED:WC_MINT_SEED]=1;
+    reward[crop->crop==0?WC_SUNROOT:WC_MINT]=cfg->crop_yield[crop->crop];reward[crop->crop==0?WC_SEED:WC_MINT_SEED]=1;
     WCResult r=wc_exchange(s,cost,reward,false);if(r!=WC_OK) return r;
     crop->crop=-1;crop->treated=false;return WC_OK;
 }

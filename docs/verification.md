@@ -36,8 +36,8 @@ traders, recovery caches, knowledge/techniques, cooking, compost/hoe gating,
 foundry, keep/mine/hamlet destinations, audio, cutout sprites, full night lighting,
 dynamic shadowing, turning stair routes or WebXR. Terrain renders in a bounded
 grid around the camera and uses double logical coordinates; it is not the required
-integer-chunk streamed world. Only straight stairs are supported. Recipes are
-currently C-defined and must be moved into Lua before claiming data-driven gameplay.
+integer-chunk streamed world. Only straight stairs are supported. Recipe quantities and crop tuning now load from Lua; home action dispatch uses
+content/rules.lua and retains C validation.
 Web build configuration/touch adapter exist but are unverified; durable browser
 saving is incomplete. Native saves cover implemented state only, with format1.
 
@@ -53,3 +53,25 @@ unchecked entries are not silently dropped.
 - [ ] Pause/resume, switch focus, hide help, save/restore and regain controls.
 - [ ] Inspect low window views, lighting, physical helm and human scale.
 - [ ] Review measured automated evidence separately from these comfort judgments.
+
+## Scripted-home follow-up and environment interruption
+
+Before disconnection on 2026-11-13, the scripted-home core and SDL game tests
+passed on Windows. Core coverage at that checkpoint was **404/405 lines (99.75%)**
+and **585/738 branches (79.27%)**, with the same three-file denominator.
+A later furniture-support fix and expanded real planter/workshop event tests
+also passed the core and executable tests; coverage was not rerun afterward.
+
+The earlier package, including external rules and licenses, was extracted into
+a fresh temporary directory and passed its real input/render test while launched
+from a different working directory. That package is on the disconnected Windows
+host and cannot currently be attached from this environment.
+
+The source of this follow-up was reconstructed from the session edits after the
+execution host became unavailable. Cross-platform CI now rechecks that exact
+reconstructed source. CI configuration alone is not a passing result.
+The original tested foundation is commit 3221b410b2f908c22cac39edad2027f81a42dae7.
+
+Human acceptance remains pending. Browser saving, mobile usability and WebXR are
+not released. The ground-level bell still needs an interaction path. A partial
+local bell edit was excluded from reconstruction because it had not compiled.

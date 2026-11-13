@@ -97,7 +97,20 @@ static bool game_test(App *a) {
     EXPECT(wc_gate(&a->state,wc_terrain,&a->state.seed)==WC_OK,"deploy entrance before walking route");
     key(a,SDL_SCANCODE_W,true);sim(a,420);key(a,SDL_SCANCODE_W,false);EXPECT(!a->state.attached,"walk visible stair collision to ground without jumping");
     a->state.yaw=0;key(a,SDL_SCANCODE_W,true);sim(a,420);key(a,SDL_SCANCODE_W,false);EXPECT(wc_inside(&a->state),"walk same stairs back into sanctuary without jumping");
+    /* Independent activity fixture, exercising ray + menu events + Lua rules. */
+    wc_init(&a->state,&a->cfg,271828);wc_controls_clear(&a->controls);
+    a->state.player=(WCVec){-4.5,0,2.4};a->state.yaw=WC_PI;a->state.pitch=-.55;
+    press(a,SDL_SCANCODE_E);EXPECT(a->state.context==WC_MENU && a->state.panel==WC_PLANTER,"aimed planter opens activity panel");
+    press(a,SDL_SCANCODE_1);EXPECT(a->state.crops[0].crop==0,"menu action dispatches Lua planting rule");
+    press(a,SDL_SCANCODE_ESCAPE);press(a,SDL_SCANCODE_ESCAPE);sim(a,5401);
+    press(a,SDL_SCANCODE_E);press(a,SDL_SCANCODE_3);EXPECT(a->state.pack.items[WC_SUNROOT]==3,"Lua harvest follows active simulation growth");
+    wc_init(&a->state,&a->cfg,271828);wc_controls_clear(&a->controls);
+    a->state.player=(WCVec){2.4,0,0};a->state.yaw=WC_PI/2;a->state.pitch=-.45;a->state.pack.items[WC_TIMBER]=2;
+    press(a,SDL_SCANCODE_E);EXPECT(a->state.context==WC_MENU && a->state.panel==WC_WORKSHOP,"aimed workshop opens shared cost panel");
+    press(a,SDL_SCANCODE_1);EXPECT(a->state.pack.items[WC_PLANK]==2 && a->state.pack.items[WC_TIMBER]==0,"workshop menu applies Lua recipe transaction");
+    draw(a);EXPECT(wc_screenshot("game-workshop.bmp",1280,720),"capture live available/required recipe costs");
     /* Exterior evidence remains first-person: parked at the foot of the entrance. */
+    wc_init(&a->state,&a->cfg,271828);wc_gate(&a->state,wc_terrain,&a->state.seed);
     a->state.attached=false;a->state.player=(WCVec){18,0,23};a->state.yaw=-.65;a->state.pitch=.12;
     draw(a);EXPECT(wc_screenshot("game-exterior.bmp",1280,720),"capture castle exterior from on-foot view");
     printf("Game input checks complete: %d failures, %u SDL events.\n",failed,a->controls.events);return failed==0;
@@ -128,6 +141,8 @@ int main(int argc,char **argv) {
 #endif
     snprintf(path,sizeof(path),"%scontent/home.lua",base);
     if(!wc_load_content(&app.cfg,path,error,sizeof(error)) || !wc_render_init(base,error,sizeof(error))){fprintf(stderr,"Startup: %s\n",error);SDL_ShowSimpleMessageBox(SDL_MESSAGEBOX_ERROR,"Wandering Castle",error,app.window);return 1;}
+    snprintf(path,sizeof(path),"%scontent/rules.lua",base);app.controls.rules=wc_rules_open(path,error,sizeof(error));
+    if(!app.controls.rules){fprintf(stderr,"Startup: %s\n",error);return 1;}
     wc_init(&app.state,&app.cfg,explicit_seed?seed:new_seed());
     char *pref=SDL_GetPrefPath("WanderingCastle","wandering");snprintf(app.save_path,sizeof(app.save_path),"%sjourney.sav",pref?pref:"");SDL_free(pref);
     if(app.test)snprintf(app.save_path,sizeof(app.save_path),"game-test.sav");
@@ -142,5 +157,5 @@ int main(int argc,char **argv) {
         while(!app.controls.quit)frame(&app);
 #endif
     }
-    wc_render_shutdown();SDL_GL_DestroyContext(app.gl);SDL_DestroyWindow(app.window);SDL_Quit();return status;
+    wc_rules_close(app.controls.rules);wc_render_shutdown();SDL_GL_DestroyContext(app.gl);SDL_DestroyWindow(app.window);SDL_Quit();return status;
 }

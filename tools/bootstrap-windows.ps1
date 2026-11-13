@@ -14,7 +14,7 @@ foreach ($entry in $downloads) {
     if ((Get-FileHash -LiteralPath $file -Algorithm SHA256).Hash.ToLowerInvariant() -ne $entry[2]) { throw "Checksum mismatch: $file" }
 }
 $seven = Get-Command 7z -ErrorAction SilentlyContinue
-if (-not $seven) { $seven = Get-Item 'C:\Program Files\7-Zip\7z.exe' -ErrorAction SilentlyContinue }
+if (-not $seven -and (Test-Path -LiteralPath 'C:\Program Files\7-Zip\7z.exe')) { $seven = Get-Command 'C:\Program Files\7-Zip\7z.exe' }
 if (-not (Test-Path (Join-Path $deps 'w64devkit/bin/gcc.exe'))) {
     if (-not $seven) { throw 'Install 7-Zip or extract the verified w64devkit archive into .deps/w64devkit.' }
     & $seven.Source x (Join-Path $deps $downloads[0][1]) "-o$deps" -y -bso0 -bsp0
