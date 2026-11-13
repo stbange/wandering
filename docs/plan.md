@@ -2,10 +2,10 @@
 
 | Step | Deliverable | Implementation | Automated verification | Human acceptance |
 |---|---|---|---|---|
-| 0 | Repository, licenses, OpenSpec, architecture and traceability | In progress | Pending | Pending |
-| A | Packaged first-person moving-home slice; input, collision, Lua content | Pending | Pending | Pending |
-| B | Helm, sanctuary, slopes, adaptive boarding, early save/restore | Pending | Pending | Pending |
-| C | Authoritative inventories, gardening, recipes, day/night, full HUD | Pending | Pending | Pending |
+| 0 | Repository, licenses, OpenSpec, architecture and traceability | Complete | Strict OpenSpec pass | Pending |
+| A | First-person moving-home slice; input, collision, Lua content | Implemented; package pending | Core + SDL gameplay pass | Pending |
+| B | Helm, sanctuary, slopes, adaptive boarding, early save/restore | Partial: helm, straight stairs, saves | Core slope matrix and stair traversal pass | Pending |
+| C | Authoritative inventories, gardening, recipes, day/night, full HUD | Partial: supply/garden/satchel loop | Atomic failure and growth tests pass | Pending |
 | D | Seeded biomes, bounded streaming, long-distance precision | Pending | Pending | Pending |
 | E | Upward-first furnished rooms and replacement | Pending | Pending | Pending |
 | F | Peaceful trade, combat, progression, preparations, foundry | Pending | Pending | Pending |

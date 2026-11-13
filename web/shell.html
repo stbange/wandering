@@ -1,0 +1,11 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"><title>Wandering Castle</title>
+<style>html,body{margin:0;background:#101b20;color:#ece2bd;height:100%;font-family:monospace}canvas{width:100%;height:100%;display:block;touch-action:none}#status{position:absolute;left:20px;top:16px;pointer-events:none}button{background:#192e32;color:#e5c78f;border:1px solid;padding:10px}</style></head>
+<body><div id="status">Loading your home...</div><canvas id="canvas" tabindex="0" oncontextmenu="event.preventDefault()"></canvas>
+<script>
+var Module={canvas:document.getElementById('canvas'),print:console.log,printErr:console.error,
+ setStatus:s=>document.getElementById('status').textContent=s,
+ onRuntimeInitialized:()=>document.getElementById('status').textContent=''};
+// SDL3 supplies touch events. Left drag moves; right drag looks. UI buttons
+// expose interaction, jump and pause. WebXR is explicitly not implemented yet.
+</script>{{{ SCRIPT }}}</body></html>

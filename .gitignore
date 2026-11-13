@@ -6,6 +6,7 @@
 *.gcda
 *.gcno
 *.gcov
+*.gcov.json.gz
 *.profraw
 *.sav
 *.sav.prev

@@ -1,8 +1,48 @@
 # Evidence register
 
-No implementation or platform verification is claimed by this initial scaffold.
-Every later entry must include commands, outcomes, coverage denominator, build
-platform and limitations. Human playtest acceptance remains pending.
+## Native foundation evidence — 2026-11-13
+
+Environment: Windows x64, w64devkit GCC16.2, CMake4.5.0, SDL3.4.20,
+Lua5.4.8, real OpenGL3.3 context. All commands ran against this source tree.
+
+- `openspec validate --all --strict --no-interactive`: foundation change passed.
+- `ctest --test-dir build --output-on-failure`: core and executable game tests passed.
+- Coverage build + `python tools/coverage.py build-core --gcov .deps/w64devkit/bin/gcov.exe`:
+  **347/348 authored core lines (99.71%)**, **513/636 branches (80.66%)**.
+  Denominator is `core.c`, `save.c`, `content.c`; excludes SDL/GL adapters and dependencies.
+- Actual `SDL_PushEvent` path: walk cabin/ramp, aimed helm, W/D/Shift turbo,
+  attached stability, jump while piloting, arrow look, release braking, cleared
+  held keys, pause, focus loss/recovery, F5/F9, help preference and controls after
+  restore. Straight entrance walked out and back without jump.
+- Core tests include one minute of carried turning at turbo; 20/35/45-degree
+  analytic slope traversal in both directions; pause/growth; full-inventory
+  transactional failures; repeat harvest/gather rejection; same-seed terrain
+  seam queries and corruption of every byte in a serialized save.
+- `build/game-home.bmp` and `build/game-exterior.bmp`: inspected actual rendered
+  interior/exterior. Furniture, window views, helm, six legs, roof and stairs visible.
+- Initial game-test failure: route ended on the command ramp, then aiming from
+  deck height missed above the helm. Test now walks onto the deck and explicitly
+  looks down at the helm. Assertions retained; final run passes.
+
+**Human playtest acceptance: pending.** No comfort, macOS, Linux, browser,
+mobile, XR or full-game acceptance is inferred from these tests.
+
+## Remaining gaps
+
+The deliverable is a foundation with an early home loop, not milestones A–G
+complete. In particular: no room construction/replacement, cabinets, persistent
+streaming/chunk storage, three biomes, solid outdoor obstacle collision, combat,
+traders, recovery caches, knowledge/techniques, cooking, compost/hoe gating,
+foundry, keep/mine/hamlet destinations, audio, cutout sprites, full night lighting,
+dynamic shadowing, turning stair routes or WebXR. Terrain renders in a bounded
+grid around the camera and uses double logical coordinates; it is not the required
+integer-chunk streamed world. Only straight stairs are supported. Recipes are
+currently C-defined and must be moved into Lua before claiming data-driven gameplay.
+Web build configuration/touch adapter exist but are unverified; durable browser
+saving is incomplete. Native saves cover implemented state only, with format1.
+
+Progress against every full requirement is preserved in `requirements.md`;
+unchecked entries are not silently dropped.
 
 ## Focused first playable acceptance checklist
 
