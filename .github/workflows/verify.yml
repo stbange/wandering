@@ -47,14 +47,20 @@ jobs:
         with:
           version: 4.0.22
           actions-cache-folder: emsdk-cache
-      - run: emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+      - run: emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release -DWC_WEBXR=ON
       - run: cmake --build build-web --parallel 4
+      - name: Build standard browser edition
+        run: |
+          emcmake cmake -S . -B build-web-standard -DCMAKE_BUILD_TYPE=Release -DWC_WEBXR=OFF
+          cmake --build build-web-standard --parallel 4
       - run: npm ci && npx playwright install --with-deps chromium
       - name: Run delivered game journeys and input checks
         run: |
-          python3 -m http.server 8088 --directory build-web > /tmp/wandering-http.log 2>&1 &
-          node tests/input.mjs
-          node tests/game.mjs
+          python3 tools/stage_pages.py --web build-web-standard --webxr build-web --output build-pages/wandering
+          python3 -m http.server 8088 --directory build-pages > /tmp/wandering-http.log 2>&1 &
+          WC_PAGES_URL=http://127.0.0.1:8088/wandering/ node tests/pages.mjs
+          WC_URL=http://127.0.0.1:8088/wandering/webxr/?seed=42 node tests/input.mjs
+          WC_URL=http://127.0.0.1:8088/wandering/?seed=42 node tests/game.mjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -68,4 +74,29 @@ jobs:
             build-web/assets
             build-web/docs
             build-web/openspec
+            build-pages/wandering
             artifacts
+      - name: Upload both GitHub Pages editions
+        if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+        uses: actions/upload-pages-artifact@v3
+        with:
+          path: build-pages/wandering
+  pages:
+    name: Publish separate web and WebXR pages
+    needs: [native, coverage, web]
+    if: github.ref == 'refs/heads/main' && github.event_name != 'pull_request'
+    runs-on: ubuntu-24.04
+    permissions:
+      pages: write
+      id-token: write
+    concurrency:
+      group: github-pages
+      cancel-in-progress: false
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/configure-pages@v5
+      - name: Deploy both editions
+        id: deployment
+        uses: actions/deploy-pages@v4

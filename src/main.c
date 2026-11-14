@@ -292,6 +292,7 @@ EXPORT const char *wc_web_snapshot(void) {
     snprintf(json + n, sizeof(json) - n, "]}");
     return json;
 }
+#if !defined(__EMSCRIPTEN__) || WC_WEBXR
 EXPORT void wc_xr_view(float *projection, float *view, int x, int y, int w, int h) {
 #ifdef __EMSCRIPTEN__
     if (!app.xr) {
@@ -330,6 +331,7 @@ EXPORT void wc_xr_end(void) {
     app.xr = 0;
     wc_panel(&app, PANEL_PAUSE);
 }
+#endif
 static void key(WcApp *a, SDL_Keycode k) {
     if (k == SDLK_F1 || (k == SDLK_TAB && !a->panel)) {
         a->help = !a->help;

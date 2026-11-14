@@ -49,3 +49,13 @@ workers; richer authored destination interiors and seeded orientation; collision
 for every decorative indoor furnishing; and broad human/device/platform
 acceptance. Enemy presentation is an initial telegraph/recovery implementation,
 not a finished pursuit/animation system. These are explicit follow-up milestones.
+
+## Separate Pages editions
+
+The publishing package adds distinct standard and WebXR builds. Local testing
+passes 34 Pages checks (both routes, external assets, WASM MIME type, edition
+links, touch controls and XR separation), the 15-check input suite on the staged
+WebXR page, and all 42 journey assertions on the staged standard page. The
+deployment workflow is gated by native, coverage and browser verification.
+Public URL acceptance is pending repository Pages activation; see
+[publishing](publishing.md).

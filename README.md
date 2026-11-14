@@ -9,6 +9,14 @@ runs on Linux and in a browser. The full production brief remains the target;
 [verification and remaining gaps](docs/verification.md) distinguish implemented
 features, automated evidence and pending human/device acceptance.
 
+Play on GitHub Pages: **[Web game](https://stbange.github.io/wandering/)** ·
+**[WebXR edition](https://stbange.github.io/wandering/webxr/)**.
+The web page supports keyboard, mouse and mobile touch. The separate WebXR page
+offers headset entry when a compatible browser and headset are available.
+First-time activation requires selecting **GitHub Actions** in the repository's
+[Pages settings](https://github.com/stbange/wandering/settings/pages); see
+[publishing](docs/publishing.md).
+
 ![The Hearthstrider cabin](docs/screenshots/cabin.png)
 
 ## Run
@@ -43,10 +51,10 @@ Run `build/wandering` (Windows: `build/Release/wandering.exe`). macOS uses the
 OpenGL 4.1 core context. Windows/macOS builds and platform acceptance are tracked
 separately from the verified Linux build.
 
-With Emscripten 4.0.22 activated:
+With Emscripten 4.0.22 activated, build either browser edition:
 
 ```sh
-emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release -DWC_WEBXR=ON
 cmake --build build-web --parallel 4
 python3 -m http.server 8088 --directory build-web
 ```
@@ -55,6 +63,20 @@ Lua, shaders, textures, font and audio are separate files fetched from `assets/`
 on the web too. Edit [content.lua](assets/scripts/content.lua) to change recipes,
 equipment, prices, crops and rewards, or [home.lua](assets/scripts/home.lua) to
 change the original home art. See [architecture](docs/architecture.md).
+
+For the standard edition use `-DWC_WEBXR=OFF` with a separate build directory.
+The standard WASM omits the XR entry points and bridge. To reproduce the Pages
+layout locally after building both editions:
+
+```sh
+python3 tools/stage_pages.py --web build-web-standard --webxr build-web --output build-pages/wandering
+python3 -m http.server 8091 --directory build-pages
+```
+
+Open `http://localhost:8091/wandering/` or
+`http://localhost:8091/wandering/webxr/`. The verification workflow deploys both
+pages together after native builds, coverage and browser tests pass on `main`.
+Pull requests run verification without publishing.
 
 ## Play
 

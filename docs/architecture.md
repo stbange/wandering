@@ -30,6 +30,14 @@ font and chime. After editing source assets, copy the folder to the build (or
 rebuild the executable target). `--assets PATH` or `WANDERING_ASSETS` overrides
 the native directory.
 
+GitHub Pages has two independent builds. `WC_WEBXR=OFF` publishes the standard
+edition at the project root; `WC_WEBXR=ON` publishes the immersive edition at
+`webxr/`. `tools/stage_pages.py` validates their edition metadata and includes
+each build's own WASM, JS and external assets. Entry files become `index.html`;
+all runtime requests and edition links stay relative to the project prefix.
+The Pages artifact is uploaded only after browser tests pass, and deployment
+also waits for native and coverage jobs. Only `main` publishes.
+
 Positions have signed 64-bit chunk coordinates and normalized local offsets.
 Terrain and site placement derive only from the saved seed and stable IDs.
 Destination foundations reserve their approaches before resources and trees

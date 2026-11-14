@@ -1,18 +1,29 @@
 <!doctype html>
 <html lang="en">
 <head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<meta name="wandering-edition" content="@WC_WEB_EDITION@">
 <title>Wandering Castle — Hearthstrider</title><link rel="icon" href="data:,">
 <style>
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101b20;color:#eae2c5;font:14px ui-monospace,monospace}canvas{width:100%;height:100%;display:block;outline:none;image-rendering:pixelated;touch-action:none}button{font:inherit;background:#1b2c30;color:#eae2c5;border:1px solid #aa834c;padding:11px;cursor:pointer}button:hover,button:focus{background:#3b4b43;outline:2px solid #d7b174}#loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;background:#101b20;z-index:10}#loading[hidden]{display:none}#loading small{letter-spacing:.3em;color:#b8aa83}h1{font:normal clamp(28px,5vw,64px) Georgia,serif;letter-spacing:.02em;margin:18px 0}#status{color:#899c9b}.line{width:80px;height:2px;background:#c6a16b;margin:26px auto}#tools{position:fixed;right:24px;top:110px;display:flex;gap:5px}#tools button{font-size:10px;padding:6px;opacity:.7}#touch{display:none;position:fixed;inset:0;pointer-events:none}#touch button{pointer-events:auto;touch-action:none;user-select:none;border-radius:8px;background:#102126bf}#move{position:absolute;left:18px;bottom:130px;display:grid;grid-template-columns:46px 46px 46px;grid-template-rows:46px 46px;gap:5px}#move button{padding:4px;font-size:20px}#actions{position:absolute;right:18px;bottom:130px;display:grid;grid-template-columns:65px 65px;gap:7px}#actions button{font-size:11px;padding:14px 5px}#run,#build{position:absolute;right:165px;bottom:130px;width:65px;height:45px;font-size:10px;padding:3px}#build{bottom:183px}#mobile-note{display:none;position:absolute;left:50%;top:80px;transform:translateX(-50%);font-size:10px;color:#d6b681;pointer-events:none}body.mobile #touch{display:block}body.mobile #tools{top:60px;right:18px}body.mobile #tools button{padding:6px;font-size:9px}@media(orientation:portrait){body.mobile #mobile-note{display:block}body.mobile #move{bottom:145px;left:8px}body.mobile #actions{bottom:145px;right:8px}body.mobile #tools{top:60px}}#errors{position:fixed;top:20%;left:10%;right:10%;padding:20px;background:#2e2323;border:1px solid #b97556;display:none;white-space:pre-wrap}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;overflow:hidden;background:#101b20;color:#eae2c5;font:14px ui-monospace,monospace}canvas{width:100%;height:100%;display:block;outline:none;image-rendering:pixelated;touch-action:none}button{font:inherit;background:#1b2c30;color:#eae2c5;border:1px solid #aa834c;padding:11px;cursor:pointer}button:hover,button:focus{background:#3b4b43;outline:2px solid #d7b174}#loading{position:fixed;inset:0;display:grid;place-content:center;text-align:center;background:#101b20;z-index:10}#loading[hidden]{display:none}#loading small{letter-spacing:.3em;color:#b8aa83}h1{font:normal clamp(28px,5vw,64px) Georgia,serif;letter-spacing:.02em;margin:18px 0}#status{color:#899c9b}.line{width:80px;height:2px;background:#c6a16b;margin:26px auto}#tools{position:fixed;right:24px;top:110px;display:flex;gap:5px}#tools button,#tools a{font-size:10px;padding:6px;opacity:.85}#tools a{color:#eae2c5;border:1px solid #aa834c;background:#1b2c30;text-decoration:none}#tools button:disabled{cursor:default;opacity:.6}#xr-status{position:absolute;right:0;top:32px;width:290px;font-size:10px;text-align:right;color:#d6b681}#touch{display:none;position:fixed;inset:0;pointer-events:none}#touch button{pointer-events:auto;touch-action:none;user-select:none;border-radius:8px;background:#102126bf}#move{position:absolute;left:18px;bottom:130px;display:grid;grid-template-columns:46px 46px 46px;grid-template-rows:46px 46px;gap:5px}#move button{padding:4px;font-size:20px}#actions{position:absolute;right:18px;bottom:130px;display:grid;grid-template-columns:65px 65px;gap:7px}#actions button{font-size:11px;padding:14px 5px}#run,#build{position:absolute;right:165px;bottom:130px;width:65px;height:45px;font-size:10px;padding:3px}#build{bottom:183px}#mobile-note{display:none;position:absolute;left:50%;top:80px;transform:translateX(-50%);font-size:10px;color:#d6b681;pointer-events:none}body.mobile #touch{display:block}body.mobile #tools{top:60px;right:18px}body.mobile #tools button{padding:6px;font-size:9px}@media(orientation:portrait){body.mobile #mobile-note{display:block}body.mobile #move{bottom:145px;left:8px}body.mobile #actions{bottom:145px;right:8px}body.mobile #tools{top:60px}}#errors{position:fixed;top:20%;left:10%;right:10%;padding:20px;background:#2e2323;border:1px solid #b97556;display:none;white-space:pre-wrap}
 </style></head>
 <body>
 <canvas id="canvas" width="1280" height="720" tabindex="0" aria-label="Wandering Castle first-person game"></canvas>
-<div id="loading"><small>A HOME THAT WANDERS</small><h1>Wandering Castle</h1><div class="line"></div><p id="status">Preparing the Hearthstrider…</p><small>C17 · SDL3 · OPENGL · LUA</small></div>
-<div id="tools"><button id="xr" hidden>Enter WebXR</button><button id="export-save">Export save</button><button id="fullscreen">Full screen</button></div>
+<div id="loading"><small>A HOME THAT WANDERS</small><h1>Wandering Castle</h1><div class="line"></div><p id="status">Preparing the Hearthstrider…</p><small id="edition-label">Browser edition</small></div>
+<div id="tools"><span id="xr-status" role="status" hidden></span><button id="xr" hidden disabled>Checking WebXR…</button><a id="edition-link" hidden></a><button id="export-save">Export save</button><button id="fullscreen">Full screen</button></div>
 <div id="touch"><div id="mobile-note">Landscape gives your home a little more room.</div><div id="move"><span></span><button data-move="1,0" aria-label="Walk forward">↑</button><span></span><button data-move="0,-1" aria-label="Walk left">←</button><button data-move="-1,0" aria-label="Walk backward">↓</button><button data-move="0,1" aria-label="Walk right">→</button></div><div id="actions"><button data-action="-1">Interact E</button><button data-action="-2">Jump</button><button data-action="-3">Strike</button><button data-action="-5">Bag I</button><button data-action="-4">Pause</button><button data-action="108">Help F1</button></div><button id="run">Run / 5x</button><button id="build" data-action="101" data-x="10">Build B</button></div>
 <pre id="errors"></pre>
 <script>
 const canvas=document.getElementById('canvas'),params=new URLSearchParams(location.search);
+const immersiveEdition=@WC_WEBXR_ENABLED@;
+window.wanderingEdition=immersiveEdition?'webxr':'web';
+document.documentElement.dataset.edition=window.wanderingEdition;
+const editionTitle=immersiveEdition?'Wandering Castle — WebXR':'Wandering Castle — Web';
+document.title=editionTitle;
+document.getElementById('edition-label').textContent=immersiveEdition?'WebXR edition · immersive VR':'Web edition · keyboard, mouse and touch';
+const editionLink=document.getElementById('edition-link');
+editionLink.textContent=immersiveEdition?'Play web version':'Open WebXR version';
+editionLink.href=immersiveEdition?'../':'webxr/';
+editionLink.hidden=location.pathname.endsWith('wandering.html');
 var Module={canvas,arguments:params.has('seed')?['--seed',params.get('seed')]:[],
  preRun:[function(){FS.mkdir('/saves');FS.mount(IDBFS,{},'/saves');addRunDependency('load-saves');FS.syncfs(true,err=>{if(err)console.error('Browser save loading failed',err);removeRunDependency('load-saves')});addRunDependency('external-assets');Promise.all(['scripts/content.lua','scripts/home.lua','textures/atlas.rgba','fonts/hearth.fnt','audio/chime.wav','shaders/retro.vert','shaders/retro.frag'].map(async p=>{const response=await fetch('assets/'+p);if(!response.ok)throw new Error('Missing external asset: '+p);const bytes=new Uint8Array(await response.arrayBuffer());FS.mkdirTree('/assets/'+p.split('/')[0]);FS.writeFile('/assets/'+p,bytes);})).then(()=>removeRunDependency('external-assets')).catch(err=>Module.onAbort(String(err)));}],
  print:console.log,printErr:console.error,setStatus:s=>document.getElementById('status').textContent=s,
@@ -20,6 +31,7 @@ var Module={canvas,arguments:params.has('seed')?['--seed',params.get('seed')]:[]
  onRuntimeInitialized(){window.gameAction=(action,x=0,y=0,z=0)=>Module.ccall('wc_web_action',null,['number','number','number','number'],[action,x,y,z]);window.gameState=()=>JSON.parse(Module.ccall('wc_web_snapshot','string',[],[]));}
 };
 window.addEventListener('wandering-ready',()=>{
+ document.title=editionTitle;
  canvas.focus();let mobile=matchMedia('(pointer:coarse)').matches||navigator.maxTouchPoints>0;if(mobile){document.body.classList.add('mobile');gameAction(-6);}
  document.querySelectorAll('[data-action]').forEach(b=>b.addEventListener('pointerdown',e=>{e.preventDefault();gameAction(+b.dataset.action,+(b.dataset.x||0));canvas.focus();}));
  const run=document.getElementById('run');run.addEventListener('pointerdown',e=>{e.preventDefault();run.setPointerCapture(e.pointerId);gameAction(-7,1);});['pointerup','pointercancel','lostpointercapture'].forEach(type=>run.addEventListener(type,()=>gameAction(-7,0)));
@@ -29,8 +41,12 @@ window.addEventListener('wandering-ready',()=>{
  document.getElementById('export-save').onclick=()=>{try{const blob=new Blob([FS.readFile('/saves/journey.save')],{type:'application/octet-stream'});const url=URL.createObjectURL(blob),a=document.createElement('a');a.href=url;a.download='wandering-journey.save';a.click();setTimeout(()=>URL.revokeObjectURL(url),500);}catch{gameAction(103);}};
  document.getElementById('fullscreen').onclick=()=>canvas.requestFullscreen?.();
  window.addEventListener('blur',()=>{held.clear();move();});
- if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{document.getElementById('xr').hidden=!ok;});
- document.getElementById('xr').onclick=()=>WanderingXR.start(Module,canvas).catch(err=>{console.error('WebXR:',err);document.getElementById('xr').textContent='XR unavailable';});
+ if(immersiveEdition){
+  const button=document.getElementById('xr'),status=document.getElementById('xr-status');button.hidden=false;
+  const unavailable=()=>{button.textContent='WebXR unavailable';button.disabled=true;status.textContent='Use a compatible browser and headset to enter VR.';status.hidden=false;};
+  if(navigator.xr)navigator.xr.isSessionSupported('immersive-vr').then(ok=>{if(ok){button.textContent='Enter WebXR';button.disabled=false;}else unavailable();}).catch(unavailable);else unavailable();
+  button.onclick=()=>WanderingXR.start(Module,canvas).catch(err=>{status.textContent='Could not enter VR. Check your headset connection and try again.';status.hidden=false;console.error('WebXR:',err);});
+ }
 });
 </script>
 {{{ SCRIPT }}}
