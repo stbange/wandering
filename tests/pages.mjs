@@ -35,6 +35,11 @@ try{
   await page.keyboard.press('Enter');await page.waitForFunction(()=>gameState().panel===0);
   const start=await page.evaluate(()=>gameState());await page.keyboard.down('w');await page.waitForTimeout(300);await page.keyboard.up('w');
   check((await page.evaluate(()=>gameState())).z<start.z-.3,'Each page is a playable first-person game');
+  await page.keyboard.down('w');await page.waitForFunction(()=>gameState().z< -3.8);await page.keyboard.up('w');
+  let frame=await page.evaluate(()=>{const s=gameState();Module.ccall('wc_web_look',null,['number','number'],[Math.PI-s.yaw,-s.pitch]);return s.frame;});
+  await page.waitForFunction(f=>gameState().frame>f+1,frame);check(await page.evaluate(()=>gameState().hit)!==1,'Look away from the helm before the interaction regression');
+  await page.evaluate(()=>{const s=gameState(),yaw=Math.atan2(-s.x,5.8+s.z),pitch=Math.atan2(1.55-s.y-1.62,Math.hypot(s.x,5.8+s.z));Module.ccall('wc_web_look',null,['number','number'],[yaw-s.yaw,pitch-s.pitch]);gameAction(-1);});
+  check(await page.evaluate(()=>gameState().helm)===1,'Look and interact in the same event uses the current ray');
   await page.keyboard.press('Escape');await page.waitForFunction(()=>gameState().panel===2);
   const time=await page.evaluate(()=>gameState().time);await page.waitForTimeout(150);
   check((await page.evaluate(()=>gameState())).time===time,'Pause still works after staging');

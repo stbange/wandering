@@ -53,9 +53,14 @@ not a finished pursuit/animation system. These are explicit follow-up milestones
 ## Separate Pages editions
 
 The publishing package adds distinct standard and WebXR builds. Local testing
-passes 34 Pages checks (both routes, external assets, WASM MIME type, edition
-links, touch controls and XR separation), the 15-check input suite on the staged
+passes 38 Pages checks (both routes, external assets, WASM MIME type, edition
+links, touch controls, XR separation and same-frame look/interact), the 15-check input suite on the staged
 WebXR page, and all 42 journey assertions on the staged standard page. The
 deployment workflow is gated by native, coverage and browser verification.
 Public URL acceptance is pending repository Pages activation; see
 [publishing](publishing.md).
+
+CI exposed an interaction race when look input and E arrived before the next
+render. Interactions and strikes now refresh their ray from the latest pose;
+the Pages suite explicitly looks away and back before interacting within one
+input event. Journey automation waits for game frames instead of fixed delays.

@@ -16,9 +16,9 @@ const state=()=>page.evaluate(()=>gameState());
 const frames=async n=>page.waitForFunction(n=>gameState().frame>n+1,n,{timeout:10000});
 const key=async k=>{const s=await state();await page.keyboard.press(k);await frames(s.frame)};
 async function click(label){const s=await state(),b=s.buttons.find(b=>b.label.toLowerCase().includes(label.toLowerCase()));assert.ok(b,`Missing button ${label}`);await page.mouse.click((b.x+b.w*.5)*1280/960,(b.y+b.h*.5)*720/540);await frames(s.frame);}
-async function look(yaw,pitch=0){const s=await state();await page.evaluate(({x,y})=>Module.ccall('wc_web_look',null,['number','number'],[x,y]),{x:yaw-s.yaw,y:pitch-s.pitch});await page.waitForTimeout(60);}
+async function look(yaw,pitch=0){const s=await state();await page.evaluate(({x,y})=>Module.ccall('wc_web_look',null,['number','number'],[x,y]),{x:yaw-s.yaw,y:pitch-s.pitch});await frames(s.frame);}
 async function aim(x,y,z){const s=await state(),dx=x-s.x,dz=z-s.z;await look(Math.atan2(dx,-dz),Math.atan2(y-(s.y+1.62),Math.hypot(dx,dz)));}
-async function walk(x,z,tolerance=.22){let s=await state();const indoor=s.indoor;await look(Math.atan2(x-s.x,-(z-s.z)),0);await page.keyboard.down('w');try{await page.waitForFunction(({x,z,tolerance,indoor})=>{let s=gameState();return Math.hypot(s.x-x,s.z-z)<tolerance;},{x,z,tolerance,indoor},{timeout:22000,polling:'raf'});}finally{await page.keyboard.up('w');}await page.waitForTimeout(50);}
+async function walk(x,z,tolerance=.22){let s=await state();const indoor=s.indoor;await look(Math.atan2(x-s.x,-(z-s.z)),0);await page.keyboard.down('w');try{await page.waitForFunction(({x,z,tolerance,indoor})=>{let s=gameState();return Math.hypot(s.x-x,s.z-z)<tolerance;},{x,z,tolerance,indoor},{timeout:22000,polling:'raf'});}finally{await page.keyboard.up('w');}await frames((await state()).frame);}
 async function shot(name){await page.screenshot({path:new URL(name,out).pathname});console.log('Captured',name);}
 try {
  await page.goto(url);await page.waitForFunction(()=>window.wanderingReady,undefined,{timeout:30000});await shot('01-title.png');await click('Begin wandering');

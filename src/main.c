@@ -19,6 +19,10 @@ EM_JS(void, web_ready, (), {
 
 static WcApp app;
 static void frame(void);
+static void refresh_target(WcApp *a) {
+    wc_scene(&a->game.s, &a->scene);
+    a->hit = wc_raycast(&a->game.s, &a->scene, 3.5);
+}
 void wc_input_reset(WcApp *a) {
     a->touch_forward = a->touch_side = 0;
     a->jump = 0;
@@ -140,6 +144,7 @@ void wc_interact(WcApp *a) {
         perform(a, (WcCommand){.type = CMD_HELM});
         return;
     }
+    refresh_target(a);
     WcHit h = a->hit;
     WcCommand cmd = {.target = h.id};
     int run = 1;
@@ -217,6 +222,7 @@ void wc_interact(WcApp *a) {
 static void strike(WcApp *a, int power) {
     if (a->panel)
         return;
+    refresh_target(a);
     perform(a, (WcCommand){.type = power ? CMD_POWER : CMD_ATTACK, .target = a->hit.id});
     a->attack_flash = 8;
 }
@@ -378,6 +384,7 @@ static void key(WcApp *a, SDL_Keycode k) {
                      "Park and build from inside your home.");
     }
     if (k == SDLK_F) {
+        refresh_target(a);
         if (a->hit.kind == HIT_CABINET) {
             a->storage = a->hit.index;
             wc_panel(a, PANEL_FURNITURE);
@@ -464,8 +471,7 @@ static void frame(void) {
         }
     } else
         a->accumulator = 0;
-    wc_scene(&a->game.s, &a->scene);
-    a->hit = wc_raycast(&a->game.s, &a->scene, 3.5);
+    refresh_target(a);
     if (!a->xr) {
         wc_render(a);
         if (a->test_frames && a->frame_count + 1 == a->test_frames && a->capture_path[0])

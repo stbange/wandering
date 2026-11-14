@@ -10,3 +10,6 @@
   availability feedback. Headset acceptance remains separate from API tests.
 - A failed build or test does not deploy. Pull requests never deploy.
 - Successful pushes to main publish both editions as one Pages artifact.
+- Looking and interacting within one input batch uses the latest view direction,
+  without requiring another rendered frame. Browser tests synchronize on game
+  frames rather than assuming a fixed rendering speed.
