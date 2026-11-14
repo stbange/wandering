@@ -39,7 +39,8 @@ jobs:
           name: coverage-evidence
           path: artifacts
   web:
-    runs-on: ubuntu-latest
+    # Playwright 1.56.1 supports Ubuntu 24.04; ubuntu-latest can advance past it.
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v4
       - uses: mymindstorm/setup-emsdk@v14
