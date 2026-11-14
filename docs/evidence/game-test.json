@@ -1,0 +1,57 @@
+{
+  "assertions": 42,
+  "errors": [],
+  "final": {
+    "frame": 3413,
+    "panel": 0,
+    "indoor": 1,
+    "helm": 0,
+    "gate": 1,
+    "time": 89.23333,
+    "yaw": 1.4771527,
+    "pitch": -0.53021413,
+    "health": 100,
+    "stamina": 100,
+    "seed": 42,
+    "rooms": 2,
+    "speed": 0,
+    "x": 2.6073,
+    "y": 0,
+    "z": -2.8692,
+    "cx": 0,
+    "cz": 0,
+    "help": 0,
+    "hit": 7,
+    "hitId": "0",
+    "coins": 4,
+    "bag": 24,
+    "message": "Journey restored. Parked and ready.",
+    "items": [
+      0,
+      0,
+      0,
+      2,
+      1,
+      8,
+      4,
+      3,
+      0,
+      0,
+      0,
+      0,
+      6,
+      0,
+      0,
+      0
+    ],
+    "buttons": [
+      {
+        "label": "Show help [F1]",
+        "x": 789,
+        "y": 48,
+        "w": 153,
+        "h": 25
+      }
+    ]
+  }
+}

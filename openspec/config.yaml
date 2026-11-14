@@ -1,0 +1,11 @@
+schema: spec-driven
+context: |
+  Wandering Castle: C17 authoritative simulation, SDL3 input/window/audio,
+  OpenGL 3.3 / WebGL2 renderer, external Lua 5.4 content. Single player,
+  exclusively first person. MIT code; CC BY 4.0 original art.
+  No existing engine or previous prototype is a dependency.
+rules:
+  specs:
+    - Observable behavior and rejected-command invariants are acceptance criteria.
+    - Distinguish implementation, automated evidence, and human acceptance.
+    - Sanctuary and atomic inventory invariants take precedence over presentation.

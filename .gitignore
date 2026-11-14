@@ -1,0 +1,11 @@
+/build*/
+/.deps/
+/dist/
+/artifacts/
+*.gcda
+*.gcno
+*.gcov
+__pycache__/
+*.save
+*.save.*
+node_modules/

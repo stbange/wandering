@@ -1,0 +1,70 @@
+name: Build and verify Wandering Castle
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  native:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - if: runner.os == 'Linux'
+        run: sudo apt-get update && sudo apt-get install -y libx11-dev libxext-dev libxrandr-dev libxcursor-dev libxi-dev libxfixes-dev libxss-dev libgl1-mesa-dev libegl1-mesa-dev
+      - run: cmake -S . -B build -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build --config Release --parallel 4
+      - run: ctest --test-dir build -C Release --output-on-failure
+      - run: cmake --install build --config Release --prefix dist/native
+      - uses: actions/upload-artifact@v4
+        with:
+          name: wandering-${{ runner.os }}
+          path: dist/native
+  coverage:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m pip install gcovr
+      - run: cmake -S . -B build-test -DWC_BUILD_GAME=OFF -DWC_COVERAGE=ON -DCMAKE_BUILD_TYPE=Debug
+      - run: cmake --build build-test --parallel 4
+      - run: ctest --test-dir build-test --output-on-failure
+      - run: mkdir -p artifacts && gcovr --root . --filter src/core --fail-under-line 95 --html-details artifacts/coverage.html --json-summary artifacts/coverage-summary.json --txt - build-test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: coverage-evidence
+          path: artifacts
+  web:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: mymindstorm/setup-emsdk@v14
+        with:
+          version: 4.0.22
+          actions-cache-folder: emsdk-cache
+      - run: emcmake cmake -S . -B build-web -DCMAKE_BUILD_TYPE=Release
+      - run: cmake --build build-web --parallel 4
+      - run: npm ci && npx playwright install --with-deps chromium
+      - name: Run delivered game journeys and input checks
+        run: |
+          python3 -m http.server 8088 --directory build-web > /tmp/wandering-http.log 2>&1 &
+          node tests/input.mjs
+          node tests/game.mjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: web-game-and-evidence
+          path: |
+            build-web/wandering.html
+            build-web/wandering.js
+            build-web/wandering.wasm
+            build-web/LICENSE
+            build-web/README.md
+            build-web/assets
+            build-web/docs
+            build-web/openspec
+            artifacts
